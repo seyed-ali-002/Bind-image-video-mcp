@@ -5,7 +5,7 @@ from app.video.tools import *
 from app.storage.manager import storage
 mcp=FastMCP('Bina',host=settings.host,port=settings.port,stateless_http=False)
 @mcp.tool()
-def bina_capabilities(): return {'name':'Bina','version':'0.1.0','features':['image_generation','image_editing','image_variation','image_upscale','background_removal','video_generation','image_to_video','video_editing','video_extension','async_jobs','asset_management']}
+def bina_capabilities(): return {'name':'Bina','version':'0.2.0','platforms':['linux','windows','macos'],'features':['image_generation','image_editing','image_variation','image_upscale','background_removal','video_generation','image_to_video','video_editing','video_extension','async_jobs','asset_management'],'launcher':['installer.py','runner.py','install.sh','run.sh','install.command','run.command','install.bat','run.bat','install.ps1','run.ps1']}
 @mcp.tool()
 def list_assets(kind='image'): return storage.list(kind)
 @mcp.tool()
