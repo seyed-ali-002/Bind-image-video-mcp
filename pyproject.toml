@@ -3,9 +3,17 @@ name='bina-mcp'
 version='0.1.0'
 description='Bina MCP server for image and video generation/editing'
 requires-python='>=3.12'
-dependencies=['fastapi>=0.115','uvicorn[standard]>=0.34','mcp>=1.2','pydantic-settings>=2.7','pillow>=11']
+dependencies=['fastapi>=0.115','uvicorn[standard]>=0.34','mcp>=1.2,<2','pydantic-settings>=2.7','pillow>=11']
 [project.scripts]
 bina='app.cli:main'
 [tool.pytest.ini_options]
 testpaths=['tests']
 pythonpath=['.']
+
+[build-system]
+requires = ['setuptools>=68']
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools.packages.find]
+include = ['app*']
+exclude = ['data*', 'tests*']
