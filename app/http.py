@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 
 from app.api_models import ExportRequest
 from app.assets import (
@@ -27,6 +27,58 @@ from app.media.tools import (
 from app.providers.registry import provider_status
 
 app = FastAPI(title="Bina MCP Server", version="0.7.0")
+
+PUBLIC_PATH = settings.public_path.strip("/")
+PUBLIC_PREFIX = f"/{PUBLIC_PATH}" if PUBLIC_PATH else ""
+PUBLIC_ROUTES = {
+    "/",
+    "/health",
+    "/health/live",
+    "/health/ready",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+}
+
+
+@app.middleware("http")
+async def bina_gateway(request: Request, call_next):
+    path = request.scope.get("path", "")
+    if PUBLIC_PREFIX and (
+        path == PUBLIC_PREFIX or path.startswith(PUBLIC_PREFIX + "/")
+    ):
+        stripped = path[len(PUBLIC_PREFIX) :] or "/"
+        request.scope["path"] = stripped
+        path = stripped
+
+    if (
+        path not in PUBLIC_ROUTES
+        and not path.startswith("/docs/")
+        and not path.startswith("/redoc")
+    ):
+        authorization = request.headers.get("authorization")
+        try:
+            authorize(authorization)
+        except HTTPException as exc:
+            return JSONResponse(
+                {"detail": exc.detail},
+                status_code=exc.status_code,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    return await call_next(request)
+
+
+@app.get("/")
+def root():
+    return {
+        "service": "bina",
+        "version": "0.7.0",
+        "status": "ok",
+        "mcp": "/mcp",
+        "docs": "/docs",
+        "health": "/health",
+    }
 
 
 @app.get("/health")
@@ -174,4 +226,35 @@ def connection(authorization: str | None = Header(default=None)):
     return {"url": settings.connection_url, "token": settings.auth_token}
 
 
-app.mount("/mcp", mcp.streamable_http_app())
+@app.get("/mcp")
+@app.get("/mcp/")
+def mcp_info():
+    return {
+        "service": "bina",
+        "endpoint": "/mcp",
+        "transport": "streamable-http",
+        "auth": "bearer",
+        "message": "Use POST /mcp from an MCP client; this page confirms the endpoint is reachable.",
+    }
+
+
+mcp_asgi = mcp.streamable_http_app()
+
+
+async def mcp_gateway(scope, receive, send):
+    if scope.get("method") == "GET":
+        response = JSONResponse(
+            {
+                "service": "bina",
+                "endpoint": "/mcp",
+                "transport": "streamable-http",
+                "auth": "bearer",
+                "message": "Use POST /mcp from an MCP client; this page confirms the endpoint is reachable.",
+            }
+        )
+        await response(scope, receive, send)
+        return
+    await mcp_asgi(scope, receive, send)
+
+
+app.mount("/mcp", mcp_gateway)
