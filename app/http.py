@@ -6,15 +6,18 @@ from app.core.doctor import doctor
 from app.assets import stats,list_assets,get_asset,delete_asset
 from app.db import history
 from app.jobs.manager import list_jobs,get,serialize,cancel
-app=FastAPI(title="Bina MCP Server",version="0.4.0")
+from app.providers.registry import provider_status
+app=FastAPI(title="Bina MCP Server",version="0.5.0")
 @app.get("/health")
-def health():return {"status":"ok","service":"bina","version":"0.4.0"}
+def health():return {"status":"ok","service":"bina","version":"0.5.0"}
 @app.get("/health/live")
 def live():return {"status":"alive"}
 @app.get("/health/ready")
 def ready():return {"status":"ready","storage":stats()}
 @app.get("/doctor")
 def doctor_endpoint():return doctor()
+@app.get("/providers")
+def providers():return provider_status()
 @app.get("/assets/stats")
 def asset_stats():return stats()
 @app.get("/assets")

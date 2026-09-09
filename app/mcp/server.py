@@ -3,14 +3,17 @@ from app.core.config import settings
 from app.image.tools import *
 from app.video.tools import *
 from app.core.doctor import doctor
-from app.assets import stats,list_assets,get_asset,delete_asset
+from app.assets import stats,list_assets,get_asset
 from app.db import history
 from app.media.ffmpeg import available
+from app.providers.registry import provider_status
 mcp=FastMCP("Bina",host=settings.host,port=settings.port,stateless_http=False)
 @mcp.tool()
-def bina_capabilities():return {"name":"Bina","version":"0.4.0","phase":"B","features":["sqlite","persistent_jobs","progress_tracking","asset_metadata","generation_history","job_cancel","job_listing"]}
+def bina_capabilities():return {"name":"Bina","version":"0.5.0","phase":"C","features":["provider_architecture","openai_image","replicate_image","replicate_video","provider_health","persistent_jobs","assets"]}
 @mcp.tool()
 def bina_doctor():return doctor()
+@mcp.tool()
+def bina_provider_status():return provider_status()
 @mcp.tool()
 def bina_history(limit=50,status=None):return history(limit,status)
 @mcp.tool()
