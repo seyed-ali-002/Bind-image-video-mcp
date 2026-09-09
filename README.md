@@ -1,37 +1,42 @@
 # Bina MCP Server
 
-Cross-platform MCP server for image/video workflows with independent runtime from Dana.
+Cross-platform MCP server for image/video generation, editing and media processing.
 
 ## One-click
 - Linux: `./install.sh`, then `./run.sh`
 - macOS: `./install.command`, then `./run.command`
 - Windows: `install.bat`, then `run.bat`
 
-## Providers — Phase C
-Bina uses a provider registry. Configure providers in `.env`:
+## Phase D — Media Pipeline
+Bina now has a real FFmpeg-based media pipeline:
 
-```env
-BINA_IMAGE_PROVIDER=mock
-BINA_VIDEO_PROVIDER=mock
+- Video metadata probe
+- MP4 transcoding
+- Video trim
+- Thumbnail extraction
+- Video concatenation
+- Persistent asynchronous jobs
+- Progress and asset registration
 
-# OpenAI image generation
-BINA_OPENAI_API_KEY=
-BINA_OPENAI_IMAGE_MODEL=gpt-image-1
+Requirements for media operations:
 
-# Replicate image/video
-BINA_REPLICATE_API_TOKEN=
-BINA_REPLICATE_IMAGE_MODEL=black-forest-labs/flux-schnell
-BINA_REPLICATE_VIDEO_MODEL=kwaivgi/kling-v1.6-standard
+```bash
+sudo apt install ffmpeg
 ```
 
-Supported:
-- Image: `mock`, `openai`, `replicate`
-- Video: `mock`, `replicate`
+MCP tools:
+`media_probe`, `transcode_video`, `trim_video`, `thumbnail_video`, `concat_videos`.
 
-Check configuration:
-`GET /providers` or MCP tool `bina_provider_status`.
+HTTP:
+- `GET /media/ffmpeg`
+- `GET /media/probe/{source}`
+- `POST /media/transcode/{source}`
+- `POST /media/trim/{source}`
+- `POST /media/thumbnail/{source}`
+- `POST /media/concat`
 
-## Runtime
-`python runner.py start|stop|restart|status|doctor|connection`
+## Providers
+Image: `mock`, `openai`, `replicate`
+Video: `mock`, `replicate`
 
-Dana is never modified. Bina has independent data, runtime state, token, port and provider configuration.
+Dana is never modified. Bina has independent runtime, token, storage, jobs and media processing.
