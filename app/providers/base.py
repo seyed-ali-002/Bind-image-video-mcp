@@ -1,12 +1,18 @@
-from abc import ABC,abstractmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
+
+
 class ImageProvider(ABC):
- @abstractmethod
- def generate(self,prompt:str,output:Path,width:int,height:int)->Path: ...
- @abstractmethod
- def edit(self,source:Path,prompt:str,output:Path)->Path: ...
+    @abstractmethod
+    def generate(self, prompt: str, output: Path, width: int, height: int) -> Path: ...
+    @abstractmethod
+    def edit(self, source: Path, prompt: str, output: Path) -> Path: ...
+
+
 class VideoProvider(ABC):
- @abstractmethod
- def generate(self,prompt:str,output:Path,duration:float)->Path: ...
- @abstractmethod
- def image_to_video(self,image:Path,prompt:str,output:Path,duration:float)->Path: ...
+    @abstractmethod
+    def generate(self, prompt: str, output: Path, duration: float) -> Path: ...
+    @abstractmethod
+    def image_to_video(
+        self, image: Path, prompt: str, output: Path, duration: float
+    ) -> Path: ...
