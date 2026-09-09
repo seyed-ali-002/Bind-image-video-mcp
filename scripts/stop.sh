@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
-pkill -f 'python -m app.main' || true
+set -e
+cd "$(dirname "$0")/.."
+exec .venv/bin/python runner.py stop

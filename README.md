@@ -1,14 +1,21 @@
 # Bina MCP Server
 
-Independent MCP server for image/video generation and editing. It uses Streamable HTTP, its own port/token/data directory and provider configuration. Dana is not modified.
+Cross-platform MCP server for image/video workflows with an independent runtime from Dana.
 
-## Run
-`python -m venv .venv && . .venv/bin/activate && pip install -e . && cp .env.example .env && python -m app.main`
+## One-click
+- Linux: `./install.sh`, then `./run.sh`
+- macOS: `./install.command`, then `./run.command`
+- Windows: `install.bat`, then `run.bat`
 
-Endpoints: `/health`, authenticated `/connection`, MCP `/mcp`.
+## Runtime
+`python runner.py start|stop|restart|status|doctor|connection`
 
-Tools: `bina_capabilities`, `generate_image`, `edit_image`, `image_variation`, `upscale_image`, `remove_background`, `generate_video`, `image_to_video`, `get_generation_status`, `get_generation_result`, `edit_video`, `extend_video`, `list_assets`, `delete_asset`.
+The runner detects an existing Bina process and avoids duplicate startup. If the configured port is occupied by another service, Bina automatically selects the next free port.
 
-Video generation is asynchronous and returns a job id. Mock providers provide deterministic end-to-end testing without paid API credentials. Production providers implement `app/providers/base.py` and are selected by environment configuration.
+## Installer
+`python installer.py --check|--repair|--update|--force`
 
-Tailscale detection is isolated in `app/tailscale/connection.py`; Bina does not claim Dana's existing Funnel route. Use an independent Tailscale identity or a shared reverse proxy with a unique Bina path.
+## CLI
+`bina doctor`, `bina status`, `bina connection`, `bina stop`, `bina restart`, `bina rotate-token`
+
+Dana is never modified. Bina has independent data, runtime state, token and port management.
