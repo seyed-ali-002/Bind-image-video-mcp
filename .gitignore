@@ -10,3 +10,6 @@ data/temp/*
 !data/images/.gitkeep
 !data/videos/.gitkeep
 !data/temp/.gitkeep
+
+data/
+*.db

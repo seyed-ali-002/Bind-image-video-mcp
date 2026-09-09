@@ -1,5 +1,12 @@
-import uvicorn
+import os,uvicorn
 from app.core.config import settings
+from app.core.runtime import free_port,save,clear
 from app.http import app
-def main(): uvicorn.run(app,host=settings.host,port=settings.port,workers=1)
-if __name__=='__main__': main()
+def main():
+ port=free_port(int(os.getenv("BINA_PORT",settings.port)))
+ settings.port=port; save(os.getpid(),port)
+ print(f"Bina local: http://{settings.host}:{port}")
+ print(f"Bina MCP: http://{settings.host}:{port}/mcp")
+ try: uvicorn.run(app,host=settings.host,port=port,workers=1)
+ finally: clear()
+if __name__=="__main__":main()
