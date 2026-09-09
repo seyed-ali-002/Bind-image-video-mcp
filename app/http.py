@@ -1,16 +1,18 @@
 from fastapi import FastAPI,Header,HTTPException
+from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.core.security import authorize
 from app.mcp.server import mcp
 from app.core.doctor import doctor
-from app.assets import stats,list_assets,get_asset,delete_asset
+from app.assets import stats,list_assets,get_asset,delete_asset,asset_file,asset_manifest,export_assets
+from app.api_models import ExportRequest
 from app.db import history
 from app.jobs.manager import list_jobs,get,serialize,cancel
 from app.providers.registry import provider_status
 from app.media.tools import media_probe,transcode_video,trim_video,thumbnail_video,concat_videos,ffmpeg_status
-app=FastAPI(title="Bina MCP Server",version="0.6.0")
+app=FastAPI(title="Bina MCP Server",version="0.7.0")
 @app.get("/health")
-def health():return {"status":"ok","service":"bina","version":"0.6.0"}
+def health():return {"status":"ok","service":"bina","version":"0.7.0"}
 @app.get("/health/live")
 def live():return {"status":"alive"}
 @app.get("/health/ready")
@@ -34,12 +36,28 @@ def media_concat(sources:list[str]):return {"job_id":concat_videos(sources)}
 @app.get("/assets/stats")
 def asset_stats():return stats()
 @app.get("/assets")
-def assets(kind:str|None=None,limit:int=100):return list_assets(kind,limit)
+def assets(kind:str|None=None,limit:int=100,query:str|None=None):return list_assets(kind,limit,query)
 @app.get("/assets/{asset_id}")
 def asset(asset_id:str):
- d=get_asset(asset_id)
+ d=asset_manifest(asset_id)
  if not d:raise HTTPException(404,"asset_not_found")
  return d
+@app.get("/assets/{asset_id}/download")
+def asset_download(asset_id:str):
+ d,p=asset_file(asset_id)
+ if not d:raise HTTPException(404,"asset_not_found")
+ if not p:raise HTTPException(410,"asset_file_missing")
+ return FileResponse(p,media_type=asset_manifest(asset_id)["content_type"],filename=d["name"])
+@app.get("/assets/{asset_id}/preview")
+def asset_preview(asset_id:str):
+ d,p=asset_file(asset_id)
+ if not d:raise HTTPException(404,"asset_not_found")
+ if not p:raise HTTPException(410,"asset_file_missing")
+ return FileResponse(p,media_type=asset_manifest(asset_id)["content_type"],filename=d["name"],content_disposition_type="inline")
+@app.post("/assets/export")
+def asset_export(body:ExportRequest):
+ p,items=export_assets(body.asset_ids)
+ return FileResponse(p,media_type="application/zip",filename="bina-assets.zip",headers={"X-Bina-Assets":str(len(items))})
 @app.delete("/assets/{kind}/{asset_id}")
 def asset_delete(kind:str,asset_id:str):return {"deleted":delete_asset(kind,asset_id)}
 @app.get("/history")

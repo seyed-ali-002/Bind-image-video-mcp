@@ -1,9 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass,asdict
 from datetime import datetime,timezone
-import uuid,json,threading
+import uuid,json
 from app import db
-executor=ThreadPoolExecutor(max_workers=2);jobs={};cancelled=set()
+executor=ThreadPoolExecutor(max_workers=4);jobs={};cancelled=set()
 @dataclass
 class Job:id:str;kind:str;status:str="queued";progress:int=0;result:object=None;error:str|None=None;created_at:str="";started_at:str|None=None;finished_at:str|None=None
 def now():return datetime.now(timezone.utc).isoformat()
@@ -28,9 +28,7 @@ def get(job_id):
  try:d["result"]=json.loads(d["result"]) if d.get("result") else None
  except Exception:pass
  return d
-def serialize(j):
- if not j:return None
- return asdict(j) if isinstance(j,Job) else j
+def serialize(j):return None if not j else (asdict(j) if isinstance(j,Job) else j)
 def list_jobs(limit=50,status=None):return db.jobs_list(limit,status)
 def cancel(job_id):
  j=jobs.get(job_id)
